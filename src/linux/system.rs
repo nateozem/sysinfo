@@ -35,7 +35,7 @@ impl System {
             swap_total: 0,
             swap_free: 0,
             processors: Vec::new(),
-            page_size_kb: unsafe { sysconf(_SC_PAGESIZE) as u64 / 1024 },
+            page_size_kb: unsafe { sysconf(_SC_PAGESIZE) as u64 >> 10 }, // / 1024
             temperatures: Component::get_components(),
         };
         s.refresh_all();
@@ -151,7 +151,7 @@ impl System {
             }
         }
     }
-    
+
     // COMMON PART
     //
     // Need to be moved into a "common" file to avoid duplication.
@@ -229,7 +229,7 @@ fn update_time_and_memory(entry: &mut Process, parts: &[&str], page_size_kb: u64
     //entry.name.pop();
     // we get the rss then we add the vsize
     entry.memory = u64::from_str(parts[23]).unwrap() * page_size_kb +
-                   u64::from_str(parts[22]).unwrap() / 1024;
+                   u64::from_str(parts[22]).unwrap() >> 10; // / 1024;
     set_time(entry,
              u64::from_str(parts[13]).unwrap(),
              u64::from_str(parts[14]).unwrap());
@@ -341,7 +341,7 @@ fn _get_process_data(path: &Path, proc_list: &mut HashMap<pid_t, Process>, page_
     }
 }
 
-#[allow(unused_must_use)] 
+#[allow(unused_must_use)]
 fn copy_from_file(entry: &Path) -> Vec<String> {
     match File::open(entry.to_str().unwrap()) {
         Ok(mut f) => {
